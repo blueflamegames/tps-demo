@@ -1,69 +1,88 @@
 extends Node
 
-# class member variables go here, for example:
-# var a = 2
-# var b = "textvar"
+enum GIQuality {
+	DISABLED = 0,
+	LOW = 1,
+	HIGH = 2,
+}
 
-const GI_QUALITY_HIGH = 2	
-const GI_QUALITY_LOW = 1	
-const GI_QUALITY_DISABLED = 0
+enum AAQuality {
+	DISABLED = 0,
+	AA_2X = 1,
+	AA_4X = 2,
+	AA_8X = 3,
+}
 
-const AA_8X = 3
-const AA_4X = 2
-const AA_2X = 1
-const AA_DISABLED = 0
+enum SSAOQuality {
+	DISABLED = 0,
+	LOW = 1,
+	HIGH = 2,
+}
 
-const SSAO_QUALITY_HIGH = 2	
-const SSAO_QUALITY_LOW = 1	
-const SSAO_QUALITY_DISABLED = 0
+enum BloomQuality {
+	DISABLED = 0,
+	LOW = 1,
+	HIGH = 2,
+}
 
-const RESOLUTION_NATIVE = 3
-const RESOLUTION_1080 = 2
-const RESOLUTION_720 = 1
-const RESOLUTION_576 = 0
+enum Resolution {
+	RES_540 = 0,
+	RES_720 = 1,
+	RES_1080 = 2,
+	NATIVE = 3,
+}
 
-var gi_quality = GI_QUALITY_LOW
-var aa_quality = AA_2X
-var ssao_quality = SSAO_QUALITY_DISABLED
-var resolution = RESOLUTION_NATIVE
+var gi_quality = GIQuality.LOW
+var aa_quality = AAQuality.AA_2X
+var ssao_quality = SSAOQuality.DISABLED
+var bloom_quality = BloomQuality.HIGH
+var resolution = Resolution.NATIVE
+var fullscreen = true
 
-func load_settings():
-	var f = File.new()
-	var error = f.open("user://settings.json", File.READ)
-	if (error):
-		print("no settings to load..")
-		return
-	var d = parse_json( f.get_as_text() )
-	if (typeof(d)!=TYPE_DICTIONARY):
-		return
-	if ("gi" in d):	
-		gi_quality = int(d.gi)
-		
-	if ("aa" in d):	
-		aa_quality = int(d.aa)
-		
-	if ("ssao" in d):
-		ssao_quality = int(d.ssao)
-
-	if ("resolution" in d):
-		resolution = int(d.resolution)
-	
-func save_settings():
-	
-	var f = File.new()
-	var error = f.open("user://settings.json", File.WRITE)
-	assert( not error )
-	
-	var d = { "gi":gi_quality, "aa":aa_quality, "ssao":ssao_quality, "resolution":resolution }
-	f.store_line( to_json(d) )
-
-
-	
 func _ready():
 	load_settings()
 
 
-#func _process(delta):
-#	# Called every frame. Delta is time since last frame.
-#	# Update game logic here.
-#	pass
+func _input(event):
+	if event.is_action_pressed("toggle_fullscreen"):
+		OS.window_fullscreen = !OS.window_fullscreen
+		get_tree().set_input_as_handled()
+
+
+func load_settings():
+	var f = File.new()
+	var error = f.open("user://settings.json", File.READ)
+	if error:
+		print("There are no settings to load.")
+		return
+
+	var d = parse_json(f.get_as_text())
+	if typeof(d) != TYPE_DICTIONARY:
+		return
+
+	if "gi" in d:
+		gi_quality = int(d.gi)
+
+	if "aa" in d:
+		aa_quality = int(d.aa)
+
+	if "ssao" in d:
+		ssao_quality = int(d.ssao)
+
+	if "bloom" in d:
+		bloom_quality = int(d.bloom)
+
+	if "resolution" in d:
+		resolution = int(d.resolution)
+
+	if "fullscreen" in d:
+		fullscreen = bool(d.fullscreen)
+
+
+func save_settings():
+	var f = File.new()
+	var error = f.open("user://settings.json", File.WRITE)
+	assert(not error)
+
+	var d = { "gi":gi_quality, "aa":aa_quality, "ssao":ssao_quality, "bloom":bloom_quality, "resolution":resolution, "fullscreen":fullscreen }
+	f.store_line(to_json(d))
